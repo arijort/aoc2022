@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os 
+import os
 import sys
 
 filename = "input.txt"
@@ -30,7 +30,6 @@ Find the Elf carrying the most Calories. How many total Calories is that Elf car
 """
 
 def main():
-  result = 0
   max_cal = min_size
   with open(filename, "r") as fh:
 
@@ -41,9 +40,24 @@ def main():
         elf_total = 0
       else:
         elf_total += int(line)
-        
-  print(max_cal)
+  print(f"top elf is carrying {max_cal} calories")
+
+def top3():
+  top1, top2, top3 = 0, 0, 0
+  results = []
+  with open(filename, "r" ) as fh:
+    elf_total = 0
+    for line in fh:
+      if line == '\n':
+        results.append(elf_total)
+        elf_total = 0
+      else:
+        elf_total += int(line)
+  results.sort(reverse=True)
+  print(f"top 3 elves are carrying {results[0] + results[1] + results[2]} calories")
+
 
 if __name__ == "__main__":
   main()
+  top3()
 
