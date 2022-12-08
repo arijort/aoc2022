@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import re
 
 filename = "input.txt"
@@ -24,11 +23,11 @@ move 7 from 7 to 1
 """
 
 def main(upd=False):
-  num_stacks = 9
+  num_stacks = 9 # ok to hardcode?
   stacks = [ [] for s in range(num_stacks) ]
   with open(filename, "r") as fh:
     for line in fh:
-      stack_match = re.match(r".(.)...(.)...(.)...(.)...(.)...(.)...(.)...(.)...(.).", line)
+      stack_match = re.match(r".(.)...(.)...(.)...(.)...(.)...(.)...(.)...(.)...(.).", line) # bug if last col isn't full?
       if stack_match:
         [ stacks[n].insert(0, stack_match.group(n+1)) for n in range(num_stacks) if stack_match.group(n+1).isalpha() ]
       move_match = re.match(r"move (\d+) from (\d+) to (\d+)", line)
