@@ -2,9 +2,6 @@
 
 import os
 import re
-from collections import deque
-from itertools import islice
-import numpy as np
 
 filename = "input.txt"
 
@@ -26,7 +23,6 @@ move 1 from 5 to 2
 move 7 from 7 to 1
 """
 
-
 def main(upd=False):
   num_stacks = 9
   stacks = [ [] for s in range(num_stacks) ]
@@ -34,22 +30,16 @@ def main(upd=False):
     for line in fh:
       stack_match = re.match(r".(.)...(.)...(.)...(.)...(.)...(.)...(.)...(.)...(.).", line)
       if stack_match:
-        for n in range(num_stacks):
-          if stack_match.group(n+1).isalpha():
-            #stacks[n].appendleft(stack_match.group(n+1))
-            stacks[n].insert(0, stack_match.group(n+1))
+        [ stacks[n].insert(0, stack_match.group(n+1)) for n in range(num_stacks) if stack_match.group(n+1).isalpha() ]
       move_match = re.match(r"move (\d+) from (\d+) to (\d+)", line)
       if move_match:
-        #print(np.matrix(stacks))
-        #print(f"will move {move_match.group(1)} boxes from {move_match.group(2)} to {move_match.group(3)}")
         num = int(move_match.group(1))
         frm = int(move_match.group(2)) - 1
         to  = int(move_match.group(3)) - 1
         if not upd:
-          for box in range(num):
-            stacks[to].append( stacks[frm].pop() )
+          [ stacks[to].append( stacks[frm].pop() ) for _ in range(num) ]
         else:
-          stacks[to] = stacks[to] + stacks[frm][-num:]
+          stacks[to].extend(stacks[frm][-num:])
           stacks[frm] = stacks[frm][0:-num]
 
   result = "".join([ stacks[s][-1] for s in range(num_stacks) ])
@@ -58,4 +48,3 @@ def main(upd=False):
 if __name__ == "__main__":
   main()
   main(upd=True)
-
