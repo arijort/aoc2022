@@ -69,7 +69,7 @@ def main():
       scenic = check_scenic(r,c,mat[r][c],scenic, left, up, down, right)
 
   result = sum([ any(c) for r in vis for c in r ])
-  print (f"part 1 result len is {result}")
+  print (f"part 1 result len is {result}") # should be 1688
   result2 = max( [ math.prod(c) for r in scenic for c in r ] )
   print (f"part 2 result is {result2}") # should be 410400
 
