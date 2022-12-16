@@ -31,25 +31,23 @@ Part 1:
 input is 99x99 grid
 """
 
-def check_scenic(row,col,graph, scenic, left,up,down,right):
+def check_scenic(row,col,hgt, scenic, left,up,down,right):
   # check each direction
   for direction, idx in zip([left, right, up, down], [TreeVis.LEFT, TreeVis.RIGHT, TreeVis.TOP, TreeVis.BOTTOM]):
     tree_count = 0
     for tree in direction:
       tree_count += 1
-      if tree >= graph[row][col]:
-        break
+      if tree >= hgt: break
     scenic[row][col][idx.value] = tree_count
-    #print(f"  got tree count {tree_count} going to {idx}")
   return scenic
 
-def check_cell(row,col,graph,vis, left, up, down, right):
+# compare height of focal point tree to each tree in line of 4 compass directions
+def check_cell(row,col,hgt,vis, left, up, down, right):
   for direction, idx in zip([left, right, up, down], [TreeVis.LEFT, TreeVis.RIGHT, TreeVis.TOP, TreeVis.BOTTOM]):
-    vis[row][col][idx.value] = all( [ t < graph[row][col] for t in direction ] ) # check all trees are lower than focal point
+    vis[row][col][idx.value] = max(direction) < hgt # check all trees are lower than focal point
   return vis
 
 def main():
-  result = 0
   mat = []
   with open(filename, "r") as fh:
     for line in fh:
@@ -67,13 +65,12 @@ def main():
       right =         npmat[r,   c+1:]
       down  =         npmat[r+1:,c   ]
 
-      vis    = check_cell(  r,c,mat,vis,    left, up, down, right)
-      scenic = check_scenic(r,c,mat,scenic, left, up, down, right)
+      vis    = check_cell(  r,c,mat[r][c],vis,    left, up, down, right)
+      scenic = check_scenic(r,c,mat[r][c],scenic, left, up, down, right)
 
   result = sum([ any(c) for r in vis for c in r ])
   print (f"part 1 result len is {result}")
   result2 = max( [ math.prod(c) for r in scenic for c in r ] )
-  #result2 = max([ reduce(lambda: x, y: x * y, c) for r in scenic for c in r ])
   print (f"part 2 result is {result2}") # should be 410400
 
 if __name__ == "__main__":
