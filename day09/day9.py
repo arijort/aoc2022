@@ -2,8 +2,9 @@
 
 import sys
 import numpy as np
-filename = "input.txt"
+#filename = "input.txt" # 2629 too low 2868 too high
 #filename = "small"
+filename = "medium"
 
 """
 Part 1:
@@ -40,40 +41,37 @@ def are_overlapping(head, tail):
   return head == tail
 
 def are_adjacent(head, tail):
-    return abs( head[0] - tail[0] ) < 2 and abs( head[1] - tail[1]) < 2
+  return abs( head[0] - tail[0] ) < 2 and abs( head[1] - tail[1]) < 2
 
-  
 max_x, min_x, max_y, min_y = 0,0,0,0
 
 def add_point(s, x, y):
   """ Add given point (x,y) to set of points (s) and track the min and max values of both x and y to allow for easy visualization """
-  global max_x, min_x, max_y, min_y
   #print(f"adding point {x},{y}")
-  max_x = max(max_x, x)
-  max_y = max(max_y, y)
-  min_x = min(min_x, x)
-  min_y = min(min_y, y)
   s.add( (x,y) )
 
-def draw(points, h, t):
+def draw(points, knots):
   """ Take the set of points we are tracking and draw graph."""
   global max_x, min_x, max_y, min_y
-  bound_x = ( min(min_x, -5), max(max_x + 2, 5) )
-  bound_y = ( min(min_y, -5), max(max_y + 2, 5) )
+  bound_x = ( min(min_x-2, -5), max(max_x + 2, 5) )
+  bound_y = ( min(min_y-2, -5), max(max_y + 2, 5) )
+  kd = {}
+  for n, k in enumerate(knots):
+    kd[k] = n
   #print(f"drawing from x {bound_x[0]} to {bound_x[1]} and y {bound_y[0]} to {bound_y[1]}")
   #print(f"  have points {points}")
-  for y in range(bound_y[1], bound_y[0], -1):
+  for y in range(bound_y[1], bound_y[0], -1): # go in reverse to make up appear up
     for x in range(bound_x[0] , bound_x[1]):
       if (x,y) == (0,0):
         print("s", end="")
-      elif (x,y) == h:
+      elif (x,y) == knots[0]:
         print("H", end="")
-      elif (x,y) == t:
+      elif (x,y) == knots[ len(knots) - 1]:
         print("T", end="")
       elif (x,y) in points:
         print("*", end="")
-      elif (x,y) == (0,0):
-        print("s", end="")
+      elif (x,y) in knots:
+        print(f"{kd[(x,y)]}", end="")
       else:
         print(".", end="")
     print("\n", end="")
@@ -87,23 +85,22 @@ def point_chase(h, t, s, track=False):
   elif are_overlapping(h, t):
     print("case 2 no movement")
   # case 3: T moves in 1 dimension y; because x matches 
-  elif h[0] == t[0]:
-    print("case 3 movement along y")
+  elif h[0] == t[0] and False:
+    print(f"case 3 movement along y tracking {track}")
     cmp = compare( t[1], h[1])
-    #for y in range( min( h[1], t[1]) , max( h[1], t[1]) ):
     for y in range( t[1], h[1], cmp ):
       if track: add_point(s, t[0], y)
     t = (t[0], y)
   # case 4: T moves in 1 dimension x; because y matches
-  elif h[1] == t[1]:
-    print("case 4 movement along x")
+  elif h[1] == t[1] and False:
+    print(f"case 4 movement along x tracking {track}")
     cmp = compare( t[0], h[0]) 
     for x in range( t[0], h[0], cmp ):
       if track: add_point(s, x, t[1])
       t = (x, t[1])
   else:
-    # case 5 T mvoes diagonally
-    print(f"case 5 diagonal movement from tail {t} to head {h}")
+    # case 5 T moves diagonally
+    print(f"case 5 diagonal movement from tail {t} to head {h} tracking {track}")
     while not are_adjacent(h, t):
       delta_x = compare( t[0], h[0] )
       delta_y = compare( t[1], h[1] )
@@ -113,20 +110,32 @@ def point_chase(h, t, s, track=False):
 
 def pull(pulls):
   s = set() # track points visited by tail in tuples (x,y)
-  initx, inity = 0, 0
+  npull, initx, inity = 0, 0, 0
   h, t = (initx, inity), (initx, inity)
-  num_knots = 9
-  knots = [ (initx, inity) ] * 9
+  num_knots = 10
+  knots = [ (initx, inity) ] * 10
+  print(f"knots is {type(knots)}")
   add_point(s, initx, inity)
   for direction, amount in pulls: # each pulls is direction and amount e.g. R 4
     vec = np.array(directions[direction]) * int(amount)
-    #h = (h[0] + vec[0] , h[1] + vec[1] )
-    h = (h[0] + vec[0] , h[1] + vec[1] )
-    print(f"have movement '{direction} {amount}' vec {vec} to {h} with tail {t}")
-    #print(f"tail {t} chasing new h {h} ")
-    (t,s) = point_chase(h, t, s, True)
-    print(f"tail ending at {t} chasing h {h} ")
-    #draw(s, h, t)
+    knots[0] = (knots[0][0] + vec[0] , knots[0][1] + vec[1] )
+    print(f"pull {npull} have movement '{direction} {amount}' vec {vec} to {knots[0]}")
+    global max_x, min_x, max_y, min_y
+    max_x = max(max_x, knots[0][0])
+    max_y = max(max_y, knots[0][1])
+    min_x = min(min_x, knots[0][0])
+    min_y = min(min_y, knots[0][1])
+    for k in range(1, num_knots):
+      h = knots[k - 1]
+      t = knots[k]
+      print(f"k{k} at {t} chasing k{k-1} at {h}")
+      tracker = (k == num_knots - 1)
+      (t,s) = point_chase(h, t, s, tracker)
+      print(f"  moved to {t}")
+      knots[k] = t
+      draw(s, knots)
+    print(f"tail ending at {t} chasing h {knots[0]} with {len(s)} visited: {s}")
+    npull += 1
   return len(s)
 
 def main():
@@ -136,7 +145,7 @@ def main():
       pulls.append( (line.strip().split() ) ) # unpack tuple straight into function call
 
   result = pull(pulls)
-  print (f"part 1 result is {result}") # should be 6354
+  print (f"part 1 result is {result}") # should be 6354 for part 1
 
 if __name__ == "__main__":
   main()
