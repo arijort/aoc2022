@@ -2,9 +2,9 @@
 
 import sys
 import numpy as np
-#filename = "input.txt" # 2629 too low 2868 too high
+filename = "input.txt" # 2629 too low 2868 too high
 #filename = "small"
-filename = "medium"
+#filename = "medium"
 
 """
 Part 1:
@@ -78,34 +78,11 @@ def draw(points, knots):
 
 def point_chase(h, t, s, track=False):
   """ Calculate path tail follows when chasing head. Use track boolean to drive whether to return list of points that tail follows. """
-  # case 1: no T movement because of adjacency
-  if are_adjacent(h, t):
-    print("case 1 no movement")
-  # case 2: no T movement because of overlapping
-  elif are_overlapping(h, t):
-    print("case 2 no movement")
-  # case 3: T moves in 1 dimension y; because x matches 
-  elif h[0] == t[0] and False:
-    print(f"case 3 movement along y tracking {track}")
-    cmp = compare( t[1], h[1])
-    for y in range( t[1], h[1], cmp ):
-      if track: add_point(s, t[0], y)
-    t = (t[0], y)
-  # case 4: T moves in 1 dimension x; because y matches
-  elif h[1] == t[1] and False:
-    print(f"case 4 movement along x tracking {track}")
-    cmp = compare( t[0], h[0]) 
-    for x in range( t[0], h[0], cmp ):
-      if track: add_point(s, x, t[1])
-      t = (x, t[1])
-  else:
-    # case 5 T moves diagonally
-    print(f"case 5 diagonal movement from tail {t} to head {h} tracking {track}")
-    while not are_adjacent(h, t):
-      delta_x = compare( t[0], h[0] )
-      delta_y = compare( t[1], h[1] )
-      t = (t[0] + delta_x, t[1] + delta_y )
-      if track: add_point(s, t[0], t[1])
+  while not are_adjacent(h, t):
+    delta_x = compare( t[0], h[0] )
+    delta_y = compare( t[1], h[1] )
+    t = (t[0] + delta_x, t[1] + delta_y )
+    if track: add_point(s, t[0], t[1])
   return (t,s)
 
 def pull(pulls):
@@ -113,13 +90,12 @@ def pull(pulls):
   npull, initx, inity = 0, 0, 0
   h, t = (initx, inity), (initx, inity)
   num_knots = 10
-  knots = [ (initx, inity) ] * 10
-  print(f"knots is {type(knots)}")
+  knots = [ (initx, inity) ] * num_knots
   add_point(s, initx, inity)
   for direction, amount in pulls: # each pulls is direction and amount e.g. R 4
     vec = np.array(directions[direction]) * int(amount)
     knots[0] = (knots[0][0] + vec[0] , knots[0][1] + vec[1] )
-    print(f"pull {npull} have movement '{direction} {amount}' vec {vec} to {knots[0]}")
+    #print(f"pull {npull} have movement '{direction} {amount}' vec {vec} to {knots[0]}")
     global max_x, min_x, max_y, min_y
     max_x = max(max_x, knots[0][0])
     max_y = max(max_y, knots[0][1])
@@ -128,13 +104,13 @@ def pull(pulls):
     for k in range(1, num_knots):
       h = knots[k - 1]
       t = knots[k]
-      print(f"k{k} at {t} chasing k{k-1} at {h}")
+      #print(f"k{k} at {t} chasing k{k-1} at {h}")
       tracker = (k == num_knots - 1)
       (t,s) = point_chase(h, t, s, tracker)
-      print(f"  moved to {t}")
+      #print(f"  moved to {t}")
       knots[k] = t
-      draw(s, knots)
-    print(f"tail ending at {t} chasing h {knots[0]} with {len(s)} visited: {s}")
+      #draw(s, knots)
+    #print(f"tail ending at {t} chasing h {knots[0]} with {len(s)} visited: {s}")
     npull += 1
   return len(s)
 
