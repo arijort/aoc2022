@@ -24,31 +24,41 @@ Monkey 0:
 
 Part 2
 
+Worry level does not reduce by 3. What is monkey business after 10000 rounds?
+
 """
 
 func_d = { '+': lambda x, y: x + y, '*': lambda x, y: x * y }
 
 monkey_items, monkey_ops, monkey_test, monkey_targets = {}, {}, {}, {}
 
-inspections = Counter()
 num_rounds = 20
+num_rounds2 = 10000
+reduce_factor = 1
+inspections = Counter()
 
 def main():
   parse()
-  monkey_chase()
+  r1 = monkey_chase(num_rounds, worry_drop=True)
+  print(f"monkey business part 1 is {r1}") # 72884
+  inspections.clear()
+  parse()
+  r2 = monkey_chase(num_rounds2, worry_drop=False)
+  print(f"monkey business part 2 is {r2}") # 15310845153
 
-def monkey_chase():
+def monkey_chase(num_rounds, worry_drop):
   for round in range(num_rounds):
     for monkey in monkey_items:
       while len(monkey_items[monkey]) > 0:
         worry_level = int(monkey_items[monkey].popleft())
         inspections[monkey] += 1
         worry_level = monkey_ops[monkey](worry_level)
-        worry_level = worry_level // 3
+        if worry_drop: worry_level = worry_level // 3
         target_monkey = monkey_targets[monkey][ (worry_level % int(monkey_test[monkey])) == 0 ]
+        worry_level = worry_level % reduce_factor
         monkey_items[target_monkey].append(worry_level)
   result = math.prod([ mb[1] for mb in inspections.most_common(2) ])
-  print(f"monkey business value is {result}") # 72884
+  return result
 
 def parse():
   with open(filename, "r") as fh:
@@ -63,7 +73,9 @@ def parse():
       elif param == 'old' and op == '*':
         monkey_ops[m_id] = lambda x: x*x
 
-      monkey_test[m_id] =  re.findall(r'Test: divisible by (\d+)', lines[3])[0]
+      monkey_test[m_id] = int( re.findall(r'Test: divisible by (\d+)', lines[3])[0] )
+      global reduce_factor
+      reduce_factor *= monkey_test[m_id]
       t_result = re.findall(r'If true: throw to monkey (\d+)', lines[4] )[0]
       f_result = re.findall(r'If false: throw to monkey (\d+)', lines[5])[0]
 
