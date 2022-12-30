@@ -2,6 +2,7 @@
 import sys
 import numpy as np
 from pprint import pprint
+from functools import cmp_to_key
 filename = "input.txt"
 #filename = "small"
 
@@ -39,27 +40,28 @@ def do_check(left, right):
     result = do_check(left, [right])
   return result
 
-def part2(lines):
-  result = 0
-  return result
+def part2(instrs):
+  first, second = [[2]], [[6]]
+  instrs.extend([first, second])
+  instrs = sorted(instrs, key=cmp_to_key(do_check))
+  return (instrs.index(first) + 1) * (instrs.index(second) + 1)
 
 def parse():
-  lines = []
+  instrs = []
   with open(filename, "r") as fh:
-    lines = fh.readlines()
-  return lines
+    for line in fh.readlines():
+      if line != '\n':
+        instrs.append( eval(str(line)))
+  return instrs
+
 def part1(lines):
   result, ct = 0, 1
-  instrs = []
+  pairs = []
   for line in lines:
-    if line == '\n':
-      continue
-    instrs.append( eval(str(line) ))
-    if len(instrs) == 2:
-      #print(f"checking pair: {ct}")
-      if do_check( instrs[0], instrs[1] ) == -1: result += ct
-      print(f"have running result: {result}")
-      instrs = []
+    pairs.append( line )
+    if len(pairs) == 2:
+      if do_check( pairs[0], pairs[1] ) == -1: result += ct
+      pairs = []
       ct += 1
   return result
 
@@ -68,7 +70,7 @@ def main():
   r1 = part1(lines)
   r2 = part2(lines)
   print(f"part 1: {r1}") # 4894
-  print(f"part 2: {r2}")
+  print(f"part 2: {r2}") # 24180
 
 if __name__ == "__main__":
   main()
