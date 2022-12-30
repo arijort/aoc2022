@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-import os
-import sys
-
 filename = "input.txt"
-
 
 """
 Some of the pairs have noticed that one of their assignments fully contains the other.
@@ -28,7 +24,6 @@ Example input:
   40-92,3-91
 """
 
-
 def main():
   total = 0
   with open(filename, "r") as fh:
@@ -36,18 +31,14 @@ def main():
       (first, second) = line.split(",")
       (first_start, first_end)   = [ int(i) for i in first.split("-") ]
       (second_start, second_end) = [ int(i) for i in second.split("-") ]
-
       if first_start <= second_start and first_end >= second_end:
         total += 1
       elif int(first_start) >= int(second_start) and first_end <= second_end:
         total += 1
-
   print(f"total is {total} ")
 
 def updated():
-  """
-  In how many segments is there any overlap at all?
-  """
+  """ In how many segments is there any overlap at all?  """
   total = 0
   with open(filename, "r") as fh:
     for line in fh:
@@ -56,10 +47,8 @@ def updated():
       (second_start, second_end) = [ int(i) for i in second.split("-") ]
       if second_start <= first_start <= second_end or first_start <= second_start <= first_end:
         total += 1
-
   print(f"updated score is {total} ")
 
 if __name__ == "__main__":
   main()
   updated()
-
