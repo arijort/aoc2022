@@ -23,12 +23,9 @@ def parse():
   cave,rocks = [],[]
   with open(filename, "r") as fh:
     for line in fh.readlines():
-      points = [ rock.split(",") for rock in line.strip().split(" -> ") ]
-      segments = []
-      for p in points:
-        i = [ int(coord) for coord in p ]
-        segments.append(i)
-      cave.append(segments)
+      rocks = [ rock for rock in line.strip().split(" -> ") ]
+      points = [ tuple(map(int, rock.split(","))) for rock in rocks ]
+      cave.append(points)
   return cave
 
 def make_grid(cave):
