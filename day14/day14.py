@@ -14,9 +14,10 @@ identify how many sand units fall and come to rest before sand falls off into in
 
 Part 2
 
+Given a floor at max_y + 2, where max_y is the largest y value among the given points,
+compute how many grains of sand fall before a unit comes to rest at the starting point
+(500,0)
 """
-
-
 
 def parse():
   cave,rocks = [],[]
@@ -28,83 +29,65 @@ def parse():
         i = [ int(coord) for coord in p ]
         segments.append(i)
       cave.append(segments)
-  #pprint(cave)
   return cave
 
-def part1(cave):
-  ct = 0
+def make_grid(cave):
   max_x, max_y = 0,0
   for line in cave:
     for px,py in line:
-      max_x = max(max_x,px) + 2
-      max_y = max(max_y,px) + 2
-
-  print(f"max x {max_x} y {max_y}")
+      max_x = max(max_x, px+210)
+      max_y = max(max_y, py+3)
+  #print(f"max x {max_x} y {max_y}")
   grid = np.ones( (max_y, max_x) )
   for line in cave:
     for n, seg in enumerate(line):
       if n == 0: continue
-      #print(f"make rock from {line[n-1]} to {seg}")
       startx, starty = line[n-1]
       endx, endy = seg
-      # create ranges for np
-      if startx == endx:
+      if startx == endx: # vertical line
         starty, endy = min(starty, endy), max(starty, endy) + 1
         grid[starty:endy, startx] = 8
-      elif starty == endy:
+      elif starty == endy: # horizontal line
         startx, endx = min(startx, endx), max(startx, endx) + 1
         grid[starty, startx:endx] = 8
-      #print(f"  rock from {startx},{starty} to {endx},{endy}")
-      
-  print(grid[0:40,493:505])
-  lostsand = False
-  while not lostsand:
-    #print(f"itr {ct}")
-    # start sand at 500,0
-    lostsand = dropsand(grid, 500, 0)
-    ct += 1
-  #pprint(grid)
-  print(grid[0:40,493:505])
-  return ct - 1
+  return grid
 
-def dropsand(grid, dropx=500, dropy=0):
-  # range to check: 500,0:
+def part1(grid):
+  ct = 0
+  while not dropsand(grid, 500, 0): ct += 1
+  return ct
+
+def part2(grid):
+  grid[-1,] = 8 # create floor
+  ct = 0 
+  while not dropsand(grid, 500, 0, True): ct+=1
+  return ct + 1 #to account for last sand
+
+def dropsand(grid, dropx=500, dropy=0, checktop=False):
   result = False
-  #print(f"check vector {dropx},{dropy} ")
-  vector = grid[dropy:, dropx]
-  #print(f"have v {vector} {type(vector)}")
+  vector = grid[dropy:, dropx] # check vector from drop point going down
   stop, stopy = np.where(vector > 6), len(grid)
-  #print(f"have stop {stop} {type(stop)}")
-  #print(f"  {type(stop[0])}")
-  #if not stop:
-    #print(f"fell into abys")
-  #  result = True
   if stop: # and stop[0]:
     if len(stop[0]) > 0:
       stopy = stop[0][0] - 1 + dropy
-  #print(f"check {dropx-1},{stopy+1} and {dropx+1},{stopy+1}")
   if stopy >= len(grid): 
-    print(f"fell into abys")
-    result = True
-  elif grid[stopy + 1, dropx - 1] == 1:
-    #print(f"trying left {dropx -1} {stopy+1}")
+    result = True # fell off the bottom into abyss
+  elif 0 < dropx and grid[stopy + 1, dropx - 1] == 1: # check left
     result = dropsand(grid, dropx - 1, stopy + 1)
-  elif grid[stopy + 1, dropx + 1] == 1:
-    #print(f"trying right")
+  elif dropx < len(grid[0]) -1  and grid[stopy + 1, dropx + 1] == 1: # check right
     result = dropsand(grid, dropx + 1, stopy + 1)
   else:
-    #print(f"  found rest point {dropx} {stopy}")
-    grid[stopy, dropx] = 7
-    #print(grid[0:11,493:505])
-  #print(f"have index {np.where(vector == 8)[0][0]}")
+    grid[stopy, dropx] = 7 # sand came to rest
+    if checktop and (stopy, dropx) == (dropy,dropx): result = True # part 2
   return result
 
 def main():
   cave = parse()
-  r1 = part1(cave)
-  r2 = part2(cave)
-  print(f"part 1: {r1}")
-  #print(f"part 2: {r1+r2}")
+  grid = make_grid(cave)
+  r1 = part1(grid)
+  print(f"part 1: {r1}") # 763
+  r2 = part2(grid)
+  print(f"part 2: {r1+r2}") # 23921
 
 if __name__ == "__main__":
   main()
