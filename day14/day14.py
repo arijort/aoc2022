@@ -1,9 +1,10 @@
 #!/usr/local/bin/python3.11
-import sys
 import numpy as np
-from pprint import pprint
 filename = "input.txt"
 #filename = "small"
+
+AIR = False
+ROCK = True
 
 """
 Part 1:
@@ -29,13 +30,9 @@ def parse():
   return cave
 
 def make_grid(cave):
-  max_x, max_y = 0,0
-  for line in cave:
-    for px,py in line:
-      max_x = max(max_x, px+210)
-      max_y = max(max_y, py+3)
-  #print(f"max x {max_x} y {max_y}")
-  grid = np.ones( (max_y, max_x) )
+  max_y = max( [py for c in cave for _, py in c ] ) + 3 # leave room for floor
+  max_x = max( [px for c in cave for px, _ in c ] ) + 2 * max_y # allow for triangle of sand
+  grid = np.full( (max_y, max_x), AIR )
   for line in cave:
     for n, seg in enumerate(line):
       if n == 0: continue
@@ -43,10 +40,10 @@ def make_grid(cave):
       endx, endy = seg
       if startx == endx: # vertical line
         starty, endy = min(starty, endy), max(starty, endy) + 1
-        grid[starty:endy, startx] = 8
+        grid[starty:endy, startx] = ROCK
       elif starty == endy: # horizontal line
         startx, endx = min(startx, endx), max(startx, endx) + 1
-        grid[starty, startx:endx] = 8
+        grid[starty, startx:endx] = ROCK
   return grid
 
 def part1(grid):
@@ -63,24 +60,24 @@ def part2(grid):
 def dropsand(grid, dropx=500, dropy=0, checktop=False):
   result = False
   vector = grid[dropy:, dropx] # check vector from drop point going down
-  stop, stopy = np.where(vector > 6), len(grid)
-  if stop: # and stop[0]:
+  stop, stopy = np.where(vector != AIR), len(grid)
+  if not stop: return True
+  if stop:
     if len(stop[0]) > 0:
       stopy = stop[0][0] - 1 + dropy
   if stopy >= len(grid): 
     result = True # fell off the bottom into abyss
-  elif 0 < dropx and grid[stopy + 1, dropx - 1] == 1: # check left
+  elif not grid[stopy + 1, dropx - 1]:  # check left
     result = dropsand(grid, dropx - 1, stopy + 1)
-  elif dropx < len(grid[0]) -1  and grid[stopy + 1, dropx + 1] == 1: # check right
+  elif not grid[stopy + 1, dropx + 1] : # check right
     result = dropsand(grid, dropx + 1, stopy + 1)
   else:
-    grid[stopy, dropx] = 7 # sand came to rest
+    grid[stopy, dropx] = ROCK # sand came to rest
     if checktop and (stopy, dropx) == (dropy,dropx): result = True # part 2
   return result
 
 def main():
-  cave = parse()
-  grid = make_grid(cave)
+  grid = make_grid(parse())
   r1 = part1(grid)
   print(f"part 1: {r1}") # 763
   r2 = part2(grid)
