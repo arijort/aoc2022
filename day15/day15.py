@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3.11
 import re
-import numpy as np
-from bitarray import bitarray
+#import numpy as np
+#from bitarray import bitarray
 filename = "input.txt"
 #filename = "small"
 
@@ -44,14 +44,13 @@ class sensor:
                  self.py + self.px + self.range)
     border_bl = (False,
                  self.py + self.px - self.range)
+    return (border_tr, border_bl)
 
 limit_min, limit_max = 0, 4_000_000
 #limit_min, limit_max = 0, 20
 
 def parse():
-  #beacon_x, beacon_y = {},{}
   sensor_d = {}
-  #beacons = set()
   with open(filename, "r") as fh:
     for line in fh.readlines():
       sense_re = r'.*at x=(?P<sx>-?\d+), y=(?P<sy>-?\d+): .* at x=(?P<bx>-?\d+), y=(?P<by>-?\d+)'
@@ -61,21 +60,9 @@ def parse():
       g = points.group
       key = ( int(g('sx')), int(g('sy')) )
       bea = ( int(g('bx')), int(g('by')) )
-      #beacons.add( bea )
-      #beacon_x[ key ] = int(g('bx'))
-      #beacon_y[ key ] = int(g('by'))
-      s = sensor( key, bea )
-      sensor_d[key] = s # key is tuple(px,py) of sensor location, value is sensor object
-  #return (beacon_x, beacon_y, beacons, sensor_d)
+      sensor_d[key] = sensor( key, bea )
+      # key is tuple(px,py) of sensor location, value is sensor object
   return (sensor_d)
-
-def get_distances(beacon_x, beacon_y):
-  distances = {}
-  for sx,sy in beacon_x:
-    #distance = abs(sx - beacon_x[(sx,sy)]) + abs(sy - beacon_y[(sx,sy)])
-    #print(f"sensor {(sx,sy)} distance {distance}")
-    distances[(sx,sy)] = abs(sx - beacon_x[(sx,sy)]) + abs(sy - beacon_y[(sx,sy)])
-  return distances
 
 def check_row(distances, row):
   s = set()
@@ -102,8 +89,26 @@ def do_row(sensor_d, row) -> set:
     horiz_dist = sensor_d[key].range - vert_dist
     left  = sx - horiz_dist
     right = sx + horiz_dist
-    s.update( list(range(left, right+1) ) )
+    #l = list(range(left, right+1) )
+    #s.update( list(range(left, right+1) ) )
   return len(s) - len(b)
+
+def tuning_frequency(px, py) -> int:
+  return px * limit_max + py
+
+def check_lines(sensor_d) -> int:
+  """ return tuning frequency of point discovered to be only possible place for a beacon."""
+  positive_lines, negative_lines = [], []
+  for key in sensor_d:
+    #print(f"sensors {sensor_d}")
+    for line in sensor_d[key].positive_borders():
+      #print(f"p line {line}")
+      positive_lines.append( line )
+    for line in sensor_d[key].negative_borders():
+      #print(f"n line {line}")
+      negative_lines.append( line )
+  print(f"positive {positive_lines}")
+  print(f"negative {negative_lines}")
 
 def part2(distances):
   rx, ry = 1,1
@@ -132,22 +137,16 @@ def part2(distances):
 
 def main():
   row = 2_000_000
-  #beacon_x, beacon_y, beacons, sensor_d = parse()
   sensor_d = parse()
-  #distances = get_distances(beacon_x, beacon_y)
-  #covered = check_row(distances, row)
-  r1 = do_row(sensor_d, row)
-  #r1 = len(covered)
-  #for _,by in beacons:
-  #  if by == row: r1 -= 1
-  print(f"part 1: {r1}") # 4665948
-
+  #r1 = do_row(sensor_d, row)
+  #print(f"part 1: {r1}") # 4665948
   r2 = 0
   #for n in range(row-2_000_000, row+2_00_000):
   #for n in range(limit_max + 1):
   #covered = part2(distances)
-  #if covered: r2 = covered
-  print(f"part 2: {r2}")
+  covered = check_lines(sensor_d)
+  if covered: r2 = covered
+  print(f"part 2: {r2}") # 13543690671045
 
 if __name__ == "__main__":
   main()
